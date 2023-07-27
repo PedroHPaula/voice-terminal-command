@@ -1,0 +1,15 @@
+etc
+etc/
+
+grammar/dfa_minimize
+grammar/mkfa
+
+*.png
+
+speech_logs
+speech_logs/
+
+perf_test.py
+test.py
+
+
