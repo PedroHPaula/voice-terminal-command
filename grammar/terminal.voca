@@ -1,0 +1,127 @@
+% NS_B
+<s> sil
+
+% NS_E
+</s> sil
+
+% ARROW_KEYWORD
+ARROW           ae r ow
+
+% ALT_KEYWORD
+ALT             aa l t
+
+% CAPS_KEYWORD
+CAPS            k ae p s
+
+% COMMAND_KEYWORD
+COMMAND		k ah m ae n d
+
+% CTRL_KEYWORD
+CONTROL         k ah n t r ow l
+
+% ENTER_KEYWORD
+ENTER           eh n t er
+
+% END_KEYWORD
+END             eh n d
+
+% HOLD_KEYWORD
+HOLD            hh ow l d
+
+% HOME_KEYWORD
+HOME            hh ow m
+
+% LETTER_KEYWORD
+LETTER          l eh t er
+
+% LOCK_KEYWORD
+LOCK            l aa k
+
+% PAGE_KEYWORD
+PAGE            p ey jh
+
+% PRESS_KEYWORD
+PRESS           p r eh s
+
+% RELEASE_KEYWORD
+RELEASE         r iy l iy s
+
+% SHIFT_KEYWORD
+SHIFT           sh ih f t
+
+% SPACE_KEYWORD
+SPACE           s p ey s
+
+% SUPER_KEYWORD
+SUPER           s uw p er
+
+% TAB_KEYWORD
+TAB             t ae b
+
+% TERMINAL_KEYWORD
+TERMINAL        t er m ah n ah l
+
+% WINDOWS_KEYWORD
+WINDOWS         w ih n d ow z
+
+% COMMAND
+CD              s iy d iy
+CLIP            k l ih p
+CLEAR           k l ih r
+COPY		k aa p iy
+CUT             k ah t
+DIRECTORY       d er eh k t er iy
+DIRECTORY(4)    d ih r eh k t er iy
+EXIT		eh g z ih t
+GLOBAL          g l ow b ah l
+LAST            l ae s t
+LESS            l eh s
+LIST		l ih s t
+MOVE		m uw v
+NANO            n aa n ow
+NEW             n uw
+PASTE           p ey s t
+PIPE            p ay p
+PIPELINE        p ay p l ay n
+REMOVE          r iy m uw v
+SAVE            s ey v
+SELECT          s ah l eh k t
+SILENCE         s ay l ah n s
+STREAM          s t r iy m
+UNDO            ah n d uw
+
+% ARROW_KEY
+UP              ah p
+UPPER           ah p er
+RIGHT           r ay t
+DOWN            d aw n
+LEFT            l eh f t
+
+% LETTER
+C             s iy
+D             d iy
+O             ow
+K             k ey
+X             eh k s
+Z             z iy
+
+% DIGIT
+ZERO            z iy r ow
+ONE             w ah n
+TWO             t uw
+THREE           th r iy
+FOUR            f ao r
+FIVE            f ay v
+SIX             s ih k s
+SEVEN           s eh v ah n
+EIGHT           ey t
+NINE            n ay n
+
+
+
+
+
+
+
+
+

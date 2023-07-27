@@ -1,0 +1,67 @@
+0	[<s>]	sil
+1	[</s>]	sil
+2	[ARROW]	ae r ow
+3	[ALT]	aa l t
+4	[CAPS]	k ae p s
+5	[COMMAND]	k ah m ae n d
+6	[CONTROL]	k ah n t r ow l
+7	[ENTER]	eh n t er
+8	[END]	eh n d
+9	[HOLD]	hh ow l d
+10	[HOME]	hh ow m
+11	[LETTER]	l eh t er
+12	[LOCK]	l aa k
+13	[PAGE]	p ey jh
+14	[PRESS]	p r eh s
+15	[RELEASE]	r iy l iy s
+16	[SHIFT]	sh ih f t
+17	[SPACE]	s p ey s
+18	[SUPER]	s uw p er
+19	[TAB]	t ae b
+20	[TERMINAL]	t er m ah n ah l
+21	[WINDOWS]	w ih n d ow z
+22	[CD]	s iy d iy
+22	[CLIP]	k l ih p
+22	[CLEAR]	k l ih r
+22	[COPY]	k aa p iy
+22	[CUT]	k ah t
+22	[DIRECTORY]	d er eh k t er iy
+22	[DIRECTORY(4)]	d ih r eh k t er iy
+22	[EXIT]	eh g z ih t
+22	[GLOBAL]	g l ow b ah l
+22	[LAST]	l ae s t
+22	[LESS]	l eh s
+22	[LIST]	l ih s t
+22	[MOVE]	m uw v
+22	[NANO]	n aa n ow
+22	[NEW]	n uw
+22	[PASTE]	p ey s t
+22	[PIPE]	p ay p
+22	[PIPELINE]	p ay p l ay n
+22	[REMOVE]	r iy m uw v
+22	[SAVE]	s ey v
+22	[SELECT]	s ah l eh k t
+22	[SILENCE]	s ay l ah n s
+22	[STREAM]	s t r iy m
+22	[UNDO]	ah n d uw
+23	[UP]	ah p
+23	[UPPER]	ah p er
+23	[RIGHT]	r ay t
+23	[DOWN]	d aw n
+23	[LEFT]	l eh f t
+24	[C]	s iy
+24	[D]	d iy
+24	[O]	ow
+24	[K]	k ey
+24	[X]	eh k s
+24	[Z]	z iy
+25	[ZERO]	z iy r ow
+25	[ONE]	w ah n
+25	[TWO]	t uw
+25	[THREE]	th r iy
+25	[FOUR]	f ao r
+25	[FIVE]	f ay v
+25	[SIX]	s ih k s
+25	[SEVEN]	s eh v ah n
+25	[EIGHT]	ey t
+25	[NINE]	n ay n
