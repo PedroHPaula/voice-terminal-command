@@ -12,4 +12,5 @@ speech_logs/
 perf_test.py
 test.py
 
+__pycache__
 
