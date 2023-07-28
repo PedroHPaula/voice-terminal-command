@@ -31,76 +31,14 @@
         #cmscore1: 1.000 1.000 0.965 1.000
         #score1: -10582.712891
 
-
+from constants import ARROW_KEYS, ALPHABET_KEYS, ALPHANUM_KEYS, \
+					  CONTROL_KEYS, CONTROL_KEY_ACTIONS, DIGITS_STRINGS, \
+					  DIGITS_INTS, NAVIGATION_KEYS, TERMINAL_COMMANDS
 import sys
 from time import sleep
 from pynput.keyboard import Key, Controller
 import shlex
 import subprocess
-
-ARROW_KEYS = {
-	'DOWN'  : Key.down,
-	'LEFT'  : Key.left,
-    'RIGHT' : Key.right,
-	'UP'    : Key.up,
-	'UPPER' : Key.up,
-}
-
-
-CONTROL_KEYS = {
-	'ESCAPE'       : Key.esc,
-	'PRINT'        : Key.print_screen,
-	'PRINT SCREEN' : Key.print_screen,
-	'SCROLL'       : Key.scroll_lock,
-	'SCROLL LOCK'  : Key.scroll_lock,
-	'PAUSE'        : Key.pause,
-	'PAUSE BREAK'  : Key.pause,
-	'CONTROL'      : Key.ctrl,
-	'WINDOWS'      : Key.cmd,
-	'SUPER'        : Key.cmd,
-	'ALT'          : Key.alt,
-	'MENU'         : Key.menu,
-}
-
-DIGITS_STRINGS = {
-	'ZERO'  : '0',
-	'ONE'   : '1',
-	'TWO'   : '2',
-    'THREE' : '3',
-    'FOUR'  : '4',
-    'FIVE'  : '5',
-    'SIX'   : '6',
-    'SEVEN' : '7',
-    'EIGHT' : '8',
-    'NINE'  : '9',
-}
-
-DIGITS_INTS = {
-	'ZERO'  : 0,
-	'ONE'   : 1,
-	'TWO'   : 2,
-    'THREE' : 3,
-    'FOUR'  : 4,
-    'FIVE'  : 5,
-    'SIX'   : 6,
-    'SEVEN' : 7,
-    'EIGHT' : 8,
-    'NINE'  : 9,
-}
-
-#FUNCTION_KEYS = {}
-
-NAVIGATION_KEYS = {
-	'INSERT'     : Key.insert,
-	'DELETE'     : Key.delete,
-	'HOME'       : Key.home,
-	'END'        : Key.end,
-	'PAGE UP'    : Key.page_up,
-	'PAGE UPPER' : Key.page_up,
-	'PAGE DOWN'  : Key.page_down,
-    **ARROW_KEYS
-}
-
 
 # Class for general commands that are not associated with the Terminal
 class General:
@@ -113,46 +51,20 @@ class General:
 	}
 
 	ctrl_actions = {
-        'A'     : 'a',
-		'C'     : 'c',
-		'E'     : 'e',
-		'K'     : 'k',
-		'L'     : 'l',
-        'O'     : 'o',
-		'V'     : 'v',
-        'X'     : 'x',
-		'Z'     : 'z',
-
 		**ARROW_KEYS,
-
-		'CLEAR'  : 'l',
-		'CLIP'   : 'x',
-		'COPY'   : 'c',
-		'CUT'    : 'x',
-		'PASTE'  : 'v',
-		'SAVE'   : 's',
-		'SELECT' : 'a',
-		'UNDO'   : 'z',
+		**CONTROL_KEY_ACTIONS
 	}
 
 
 	hold_actions = {
         'CONTROL' : Key.ctrl,
         'SHIFT'   : Key.shift,
-		'SUPER'   : Key.cmd,
-		'WINDOWS' : Key.cmd,
     }
 
 	press_actions = {
-		**NAVIGATION_KEYS,
-		'Q'       : 'q',
-        'CAPS'       : Key.caps_lock,
-		'CAPS LOCK'  : Key.caps_lock,
-		'ENTER'      : Key.enter,
-		'SPACE'      : Key.space,
-	    'SUPER'      : Key.cmd,
-	    'TAB'        : Key.tab,
-	    'WINDOWS'    : Key.cmd,
+		**ALPHANUM_KEYS,
+		**CONTROL_KEYS,
+		**NAVIGATION_KEYS
 	}
 
 	shift_actions = {
@@ -194,23 +106,7 @@ class Terminal:
 	name = "Terminal"
     
 	commands = {
-		'COPY'         : 'cp',
-		'CD'           : 'cd',
-		'CLEAR'        : 'clear',
-		'DIRECTORY'    : 'mkdir',
-		'DIRECTORY(4)' : 'mkdir',
-		'EXIT'         : 'exit',
-		'GLOBAL'       : 'grep',
-		'LESS'         : 'less',
-		'LIST'         : 'ls',
-		'MOVE'         : 'mv',
-		'NANO'         : 'nano',
-		'NEW'          : 'gnome-terminal',
-		'PIPE'         : '|',
-		'PIPELINE'     : '|',
-		'REMOVE'       : 'rm',
-		'SILENCE'      : 'silence',
-		'STREAM'       : 'sed',
+		**TERMINAL_COMMANDS
 	}
 	
 	# Method that parses the strings equivalent to the spoken commands
