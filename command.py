@@ -31,14 +31,30 @@
         #cmscore1: 1.000 1.000 0.965 1.000
         #score1: -10582.712891
 
-from constants import ARROW_KEYS, ALPHABET_KEYS, ALPHANUM_KEYS, \
-					  CONTROL_KEYS, CONTROL_KEY_ACTIONS, DIGITS_STRINGS, \
-					  DIGITS_INTS, NAVIGATION_KEYS, TERMINAL_COMMANDS
+import shlex
+import subprocess
 import sys
 from time import sleep
 from pynput.keyboard import Key, Controller
-import shlex
-import subprocess
+from constants import ARROW_KEYS, ALPHABET_KEYS, ALPHANUM_KEYS, \
+					  CONTROL_KEYS, CONTROL_KEY_ACTIONS, DIGITS_STRINGS, \
+					  DIGITS_INTS, NAVIGATION_KEYS, TERMINAL_COMMANDS
+
+# Function that returns info about the current active window
+def active_window():
+
+	# Command to get the id of the current active window
+	xprop_command="/usr/bin/xprop -root _NET_ACTIVE_WINDOW"
+	args = shlex.split(xprop_command)
+	process = subprocess.run(args, capture_output=True, encoding="UTF-8")
+	window_id = process.stdout[40:49]
+
+	# Use the id to get the string that contains the name of the current active window
+	xprop_command="/usr/bin/xprop -id " + window_id + " WM_NAME"
+	args = shlex.split(xprop_command)
+	active_window_str = subprocess.run(args, capture_output=True, encoding="UTF-8")
+	
+	return [window_id, active_window_str.stdout] 
 
 # Class for general commands that are not associated with the Terminal
 class General:
@@ -74,31 +90,20 @@ class General:
 	super_actions = {
 		**NAVIGATION_KEYS
 	}
-    
-	def parse_alt(self, alt_action):
-		if alt_action in self.alt_actions:
-			return self.alt_actions[alt_action]
 
-	def parse_ctrl(self, ctrl_action):
-		if ctrl_action in self.ctrl_actions:
-			return self.ctrl_actions[ctrl_action]
-		
-	def parse_hold(self, hold_action):
-		if hold_action in self.hold_actions:
-			return self.hold_actions[hold_action]
+	action_types = {
+		'alt_actions'   : alt_actions,
+		'ctrl_actions'  : ctrl_actions,
+		'hold_actions'  : hold_actions,
+		'press_actions' : press_actions,
+		'shift_actions' : shift_actions,
+		'super_actions' : super_actions,
+	}
 
-	def parse_press(self, press_action):
-		if press_action in self.press_actions:
-			return self.press_actions[press_action]
-	
-	def parse_shift(self, shift_action):
-		if shift_action in self.shift_actions:
-			return self.shift_actions[shift_action]
-
-	def parse_super(self, super_action):
-		if super_action in self.super_actions:
-			return self.super_actions[super_action]
-            
+	# Method that parses the strings equivalent to the spoken commands
+	def parse_general_commands(self, action_str, action_type):
+		if action_str in self.action_types[action_type]:
+			return self.action_types[action_type][action_str]
 	
 # Class for Terminal-only commands
 class Terminal:
@@ -110,7 +115,7 @@ class Terminal:
 	}
 	
 	# Method that parses the strings equivalent to the spoken commands
-	def parse_command(self, command):
+	def parse_terminal_commands(self, command):
 		if command in self.commands:
 			return self.commands[command]
 
@@ -128,28 +133,6 @@ class Terminal:
 			keyboard.release('d')
 # Main class
 class CommandAndControl:
-
-	# Method that returns info about the current active window
-	def active_window(self):
-
-		# Command to get the id of the current active window
-		xprop_command="/usr/bin/xprop -root _NET_ACTIVE_WINDOW"
-		args_1 = shlex.split(xprop_command)
-		p1 = subprocess.Popen(args_1, stdout=subprocess.PIPE)
-
-		# Format the output of the previous command
-		cut_command="/usr/bin/cut -c 41-49"
-		args_2 = shlex.split(cut_command)
-		p2 = subprocess.Popen(args_2, stdin=p1.stdout, stdout=subprocess.PIPE, encoding="UTF-8")
-		p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
-		window_id = p2.communicate()[0]
-
-		# And finally return the string that contains the name of the current active window
-		xprop_command="/usr/bin/xprop -id " + window_id + " WM_NAME"
-		args = shlex.split(xprop_command)
-		active_window_str = subprocess.run(args, capture_output=True, encoding="UTF-8")
-
-		return [window_id, active_window_str.stdout] 
 
 	def __init__(self, file_object, script_id):
 	
@@ -194,7 +177,7 @@ class CommandAndControl:
 						print('\t\t\t',sentence,' - ',min(cmscore),end='\n\n')
 						
 						# Check the current active window
-						current_window_info = self.active_window()
+						current_window_info = active_window()
 						win_id = current_window_info[0]
 						win_name = current_window_info[1]
 
@@ -204,7 +187,7 @@ class CommandAndControl:
 							if sentence.startswith('ALT') and win_id != script_id:
 
 								substr = sentence.replace('ALT ','')
-								alt_action = self.general.parse_alt(substr)
+								alt_action = self.general.parse_general_commands(substr,'alt_actions')
 								if alt_action:
 									with self.keyboard.pressed(Key.alt):
 											self.keyboard.press(alt_action)
@@ -217,7 +200,7 @@ class CommandAndControl:
 								'"Terminal"' in win_name:
 								
 								substr = sentence.replace('COMMAND ','')
-								command = self.terminal.parse_command(substr)
+								command = self.terminal.parse_terminal_commands(substr)
 								if command:								
 									self.keyboard.type(command)
 
@@ -227,7 +210,7 @@ class CommandAndControl:
 							elif sentence.startswith('CONTROL') and win_id != script_id:
 								
 								substr = sentence.replace('CONTROL ','')
-								ctrl_action = self.general.parse_ctrl(substr)
+								ctrl_action = self.general.parse_general_commands(substr,'ctrl_actions')
 								if ctrl_action:
 									with self.keyboard.pressed(Key.ctrl):
 											self.keyboard.press(ctrl_action)
@@ -239,7 +222,7 @@ class CommandAndControl:
 							elif sentence.startswith('HOLD') and win_id != script_id:
 								
 								substr = sentence.replace('HOLD ','')
-								hold_action = self.general.parse_hold(substr)
+								hold_action = self.general.parse_general_commands(substr,'hold_actions')
 								if hold_action:
 									self.keyboard.press(hold_action)
 									print('\t\t','The ', substr, ' key is Pressed',end='\n\n')
@@ -255,7 +238,7 @@ class CommandAndControl:
 								sentence_words = sentence.rsplit()
 
 								# Check if the sentence ends with a non-zero numeral
-								if sentence_words[-1] in DIGITS_STRINGS and sentence_words[-1] != 'ZERO':
+								if sentence_words[-1] != 'ZERO' and sentence_words[-1] in DIGITS_STRINGS:
 									n = DIGITS_INTS[sentence_words[-1]]
 									sentence_words.pop()
 								else:
@@ -263,7 +246,7 @@ class CommandAndControl:
 								
 								# Pass only the action words of the sentence
 								sentence_words.pop(0)
-								press_action = self.general.parse_press(' '.join(sentence_words))
+								press_action = self.general.parse_general_commands(' '.join(sentence_words),'press_actions')
 
 								if press_action:					
 									for i in range(n):
@@ -274,7 +257,7 @@ class CommandAndControl:
 							elif sentence.startswith('SHIFT') and win_id != script_id:
 								
 								substr = sentence.replace('SHIFT ','')
-								shift_action = self.general.parse_shift(substr)
+								shift_action = self.general.parse_general_commands(substr,'shift_actions')
 								if shift_action:
 									with self.keyboard.pressed(Key.shift):
 										self.keyboard.press(shift_action)
@@ -286,7 +269,7 @@ class CommandAndControl:
 							elif sentence.startswith('SUPER') or sentence.startswith('WINDOWS'):
 								
 								substr = sentence.replace('SUPER ','').replace('WINDOWS ','')
-								super_action = self.general.parse_super(substr)
+								super_action = self.general.parse_general_commands(substr,'super_actions')
 								if super_action:
 									with self.keyboard.pressed(Key.cmd):
 										self.keyboard.press(super_action)
@@ -298,7 +281,7 @@ class CommandAndControl:
 							elif sentence.startswith('TERMINAL') and '"Terminal"' in win_name:
 								
 								substr = sentence.replace('TERMINAL ','')
-								command = self.terminal.parse_command(substr)
+								command = self.terminal.parse_terminal_commands(substr)
 								if command == 'gnome-terminal':
 									self.terminal.new_terminal()									
 								elif command == 'exit' and win_id != script_id:
@@ -317,20 +300,14 @@ class CommandAndControl:
 
 if __name__ == '__main__':
 	try:
-		# Command to get the id of the current active window
-		xprop_command="/usr/bin/xprop -root _NET_ACTIVE_WINDOW"
-		args_1 = shlex.split(xprop_command)
-		p1 = subprocess.Popen(args_1, stdout=subprocess.PIPE)
-
-		# Format the output of the previous command
-		cut_command="/usr/bin/cut -c 41-49"
-		args_2 = shlex.split(cut_command)
-		p2 = subprocess.Popen(args_2, stdin=p1.stdout, stdout=subprocess.PIPE, encoding="UTF-8")
-		p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
-		script_window_id = p2.communicate()[0]
+		
+		# The id of the script's window is necessary to validate
+		# If some commands can be executed
+		script_window_id = active_window()[0]
 
 		# Start Julius with the specified configuration file
-		# And pipe its output to the main class. Standard error is directed to os.devnull
+		# And pipe its output to the main class. 
+		# Standard error is directed to os.devnull.
 		julius_command="./julius -C terminal.jconf"
 		args = shlex.split(julius_command)
 		julius_output = subprocess.Popen(
