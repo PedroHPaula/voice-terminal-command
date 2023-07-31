@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# Julius OUTPUT FORMAT:	
+# Julius' OUTPUT FORMAT:	
 
 		#pass1_best: <s> COMMAND
 		#pass1_best_wordseq: 0 2
@@ -54,7 +54,27 @@ def active_window():
 	args = shlex.split(xprop_command)
 	active_window_str = subprocess.run(args, capture_output=True, encoding="UTF-8")
 	
-	return [window_id, active_window_str.stdout] 
+	return [window_id, active_window_str.stdout]
+
+# Class that handles closing Julius before exiting the script
+class ExitScript:
+
+	def close_process(process):
+		try:
+			process.terminate()
+		except Exception as terminate_error:
+			print(f"Unexpected {terminate_error=}, {type(terminate_error)=}\n")
+			print('An error occurred when trying to terminate Julius process...\n')
+			try:
+				print('Trying to kill Julius process...\n')
+				process.kill()
+			except Exception as kill_error:
+				print(f"Unexpected {kill_error=}, {type(kill_error)=}\n")
+				print('An error occurred when trying to kill Julius process...\n')
+			else:
+				print('\n\nJulius has been killed. Exiting Python script.\n')
+		else:
+			print('\n\nJulius has been terminated. Exiting Python script.\n')
 
 # Class for general commands that are not associated with the Terminal
 class General:
@@ -174,7 +194,9 @@ class CommandAndControl:
 						
 						cmscore = julius_line.replace('cmscore1: ','').replace('\n','').split(' ')
 						
-						print('\t\t\t',sentence,' - ',min(cmscore),end='\n\n')
+						percentage_score = float(min(cmscore))*100
+						
+						print(f'\t\t\t{sentence} ({percentage_score:.0f}%)\n')
 						
 						# Check the current active window
 						current_window_info = active_window()
@@ -287,7 +309,9 @@ class CommandAndControl:
 								elif command == 'exit' and win_id != script_id:
 									self.terminal.exit_terminal(self.keyboard)
 								elif command == 'silence':
-									sys.exit(2)
+									ExitScript.close_process(julius_output)	
+									sys.exit(0)
+
 								elif command and win_id != script_id:								
 									self.keyboard.type(command)
 
@@ -301,7 +325,7 @@ class CommandAndControl:
 if __name__ == '__main__':
 	try:
 		
-		# The id of the script's window is necessary to validate
+		# The id of the script's window is necessary to check
 		# If some commands can be executed
 		script_window_id = active_window()[0]
 
@@ -312,8 +336,15 @@ if __name__ == '__main__':
 		args = shlex.split(julius_command)
 		julius_output = subprocess.Popen(
 			args, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, encoding="UTF-8")
-
+		
 		CommandAndControl(julius_output.stdout, script_window_id)
 
 	except KeyboardInterrupt:
+		ExitScript.close_process(julius_output)
+		sys.exit(0)
+	
+	except Exception as general_error:
+		ExitScript.close_process(julius_output)
+		print(f"Unexpected {general_error=}, {type(general_error)=}\n")
+		print('An error occurred, exiting the script.')
 		sys.exit(1)
