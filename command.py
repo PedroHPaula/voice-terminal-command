@@ -31,6 +31,7 @@
         #cmscore1: 1.000 1.000 0.965 1.000
         #score1: -10582.712891
 
+
 import shlex
 import subprocess
 import sys
@@ -39,6 +40,7 @@ from pynput.keyboard import Key, Controller
 from constants import ARROW_KEYS, ALPHABET_KEYS, ALPHANUM_KEYS, \
 					  CONTROL_KEYS, CONTROL_KEY_ACTIONS, DIGITS_STRINGS, \
 					  DIGITS_INTS, NAVIGATION_KEYS, TERMINAL_COMMANDS
+from screen import ScriptScreen
 
 # Function that returns info about the current active window
 def active_window():
@@ -56,7 +58,8 @@ def active_window():
 	
 	return [window_id, active_window_str.stdout]
 
-# Class that handles closing Julius before exiting the script
+# Class that handles closing Julius and restoring the terminal to normal
+# before exiting the script
 class ExitScript:
 
 	def close_process(process):
@@ -64,17 +67,26 @@ class ExitScript:
 			process.terminate()
 		except Exception as terminate_error:
 			print(f"Unexpected {terminate_error=}, {type(terminate_error)=}\n")
-			print('An error occurred when trying to terminate Julius process...\n')
+			print('\nAn error occurred when trying to terminate Julius process...')
 			try:
-				print('Trying to kill Julius process...\n')
+				print('\nTrying to kill Julius process...')
 				process.kill()
 			except Exception as kill_error:
 				print(f"Unexpected {kill_error=}, {type(kill_error)=}\n")
-				print('An error occurred when trying to kill Julius process...\n')
+				print('\nAn error occurred when trying to kill Julius process...')
 			else:
-				print('\n\nJulius has been killed. Exiting Python script.\n')
+				print('\nJulius has been killed.')
 		else:
-			print('\n\nJulius has been terminated. Exiting Python script.\n')
+			print('\nJulius has been terminated.')
+
+	def exit_curses(screen_object):
+		try:
+			screen_object.exit()
+		except Exception as exit_error:
+				print(f"Unexpected {exit_error=}, {type(exit_error)=}\n")
+				print('\nAn error occurred when trying to exit curses mode...')
+		else:
+			print('\nCurses mode has been exited.')
 
 # Class for general commands that are not associated with the Terminal
 class General:
@@ -154,7 +166,7 @@ class Terminal:
 # Main class
 class CommandAndControl:
 
-	def __init__(self, file_object, script_id):
+	def __init__(self, file_object, script_id, screen):
 	
 		self.general = General()
 		
@@ -164,8 +176,6 @@ class CommandAndControl:
 		
 		# Flag to determine if setence validation is necessary
 		check_cmscore = 0
-		
-		print('>>> Awaiting Input <<<',end='\n\n')
 
 		while 1:
 			# Store each line of Julius output as a string
@@ -178,25 +188,30 @@ class CommandAndControl:
 				# If no validation was made, store the current recognized sentence
 				# And set the flag to validate the sentence
 				if check_cmscore == 0:
-					if julius_line.startswith('sentence1: <s>') and julius_line.endswith(' </s>\n'):
-					
+					if julius_line.startswith('sentence1: <s>'):
 						check_cmscore = 1
-						
 						sentence = julius_line.replace('sentence1: <s> ','').replace(' </s>\n','')
+
 					# Await for the next user's input in case the sentence has been already validated
 					elif julius_line.startswith('score1: '):
-						print('>>> Awaiting Input <<<',end='\n\n')
+						screen.input_flag = 1
+						screen.short_flag = 0
+
+					# Display that the input is being processed by Julius
+					elif julius_line == '<<< please speak >>>\n':
+						screen.input_flag = 0
+						screen.short_flag = 0
+
+					# Display that the input is too short to be processed by julius
+					elif julius_line == '<input rejected by short input>\n':
+						screen.input_flag = 1
+						screen.short_flag = 1
+
 				# Validate the stored sentence and set the validation flag to zero
 				elif check_cmscore == 1:
-					if julius_line.startswith('cmscore1: ') and julius_line.endswith('\n'):
-			
+					if julius_line.startswith('cmscore1: '):
 						check_cmscore = 0
-						
 						cmscore = julius_line.replace('cmscore1: ','').replace('\n','').split(' ')
-						
-						percentage_score = float(min(cmscore))*100
-						
-						print(f'\t\t\t{sentence} ({percentage_score:.0f}%)\n')
 						
 						# Check the current active window
 						current_window_info = active_window()
@@ -205,6 +220,10 @@ class CommandAndControl:
 
 						# Pass score that determines if the spoken sentence is valid
 						if float(min(cmscore)) >= 0.700:
+							percentage_score = float(min(cmscore))*100
+							screen.last_command = f'{sentence} ({percentage_score:.0f}%)\n' 
+							screen.invalid_flag = 0
+
 							# Alt Key valid actions
 							if sentence.startswith('ALT') and win_id != script_id:
 
@@ -215,8 +234,6 @@ class CommandAndControl:
 											self.keyboard.press(alt_action)
 											self.keyboard.release(alt_action)
 
-								else:
-									print('\t','The Alt action ', substr,' is not supported',end='\n\n')
 							# Terminal valid commands (only works if there is a current active Terminal window)
 							elif sentence.startswith('COMMAND') and win_id != script_id and \
 								'"Terminal"' in win_name:
@@ -225,9 +242,7 @@ class CommandAndControl:
 								command = self.terminal.parse_terminal_commands(substr)
 								if command:								
 									self.keyboard.type(command)
-
-								else:
-									print('\t','The Command action ', substr,' is not supported',end='\n\n')							
+					
 							# Control Key valid actions
 							elif sentence.startswith('CONTROL') and win_id != script_id:
 								
@@ -238,8 +253,6 @@ class CommandAndControl:
 											self.keyboard.press(ctrl_action)
 											self.keyboard.release(ctrl_action)
 
-								else:
-									print('\t','The Control action ', substr,' is not supported',end='\n\n')
 							# Hold valid actions
 							elif sentence.startswith('HOLD') and win_id != script_id:
 								
@@ -247,13 +260,9 @@ class CommandAndControl:
 								hold_action = self.general.parse_general_commands(substr,'hold_actions')
 								if hold_action:
 									self.keyboard.press(hold_action)
-									print('\t\t','The ', substr, ' key is Pressed',end='\n\n')
 									sleep(5.0)
 									self.keyboard.release(hold_action)
-									print('\t\t','The ', substr, ' key is Released',end='\n\n')																			
 
-								else:
-									print('\t','The Hold action ', substr,' is not supported',end='\n\n')
 							# Press valid actions
 							elif sentence.startswith('PRESS') and win_id != script_id:
 								
@@ -273,8 +282,6 @@ class CommandAndControl:
 								if press_action:					
 									for i in range(n):
 										self.keyboard.tap(press_action)
-								else:
-									print('\t','The Press action ', ' '.join(sentence_words),' is not supported',end='\n\n')
 
 							elif sentence.startswith('SHIFT') and win_id != script_id:
 								
@@ -284,10 +291,7 @@ class CommandAndControl:
 									with self.keyboard.pressed(Key.shift):
 										self.keyboard.press(shift_action)
 										self.keyboard.release(shift_action)
-										
-								else:
-									print('\t','The Super action ', substr,' is not supported',end='\n\n')
-							# Super (i.e. W!n or command key) valid actions
+
 							elif sentence.startswith('SUPER') or sentence.startswith('WINDOWS'):
 								
 								substr = sentence.replace('SUPER ','').replace('WINDOWS ','')
@@ -297,9 +301,6 @@ class CommandAndControl:
 										self.keyboard.press(super_action)
 										self.keyboard.release(super_action)
 										
-								else:
-									print('\t','The Super action ', substr,' is not supported',end='\n\n')
-							# Terminal valid commands (only works if there is a current active Terminal window)
 							elif sentence.startswith('TERMINAL') and '"Terminal"' in win_name:
 								
 								substr = sentence.replace('TERMINAL ','')
@@ -309,18 +310,19 @@ class CommandAndControl:
 								elif command == 'exit' and win_id != script_id:
 									self.terminal.exit_terminal(self.keyboard)
 								elif command == 'silence':
-									ExitScript.close_process(julius_output)	
+									ExitScript.exit_curses(screen)
+									ExitScript.close_process(julius_output)
+									print('\nExiting the script.\n')
 									sys.exit(0)
 
 								elif command and win_id != script_id:								
 									self.keyboard.type(command)
-
-								else:
-									print( '\t','The Terminal action ', substr,' is not supported',end='\n\n')	
-						# Print a message if the sentence could not be validated
 						else:
-							print('\t','Sorry, the sentence could not be validated.\n','\t','Please try speaking again',end='\n\n')
-					
+							screen.invalid_flag = 1
+
+			# Refresh the screen accordingly with the flags set above
+			screen.update()
+
 
 if __name__ == '__main__':
 	try:
@@ -330,21 +332,24 @@ if __name__ == '__main__':
 		script_window_id = active_window()[0]
 
 		# Start Julius with the specified configuration file
-		# And pipe its output to the main class. 
-		# Standard error is directed to os.devnull.
+		# And pipe its output and error to the main class. 
 		julius_command="./julius -C terminal.jconf"
 		args = shlex.split(julius_command)
 		julius_output = subprocess.Popen(
-			args, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, encoding="UTF-8")
+			args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="UTF-8")
 		
-		CommandAndControl(julius_output.stdout, script_window_id)
+		screen = ScriptScreen()
+		CommandAndControl(julius_output.stdout, script_window_id, screen)
 
 	except KeyboardInterrupt:
+		ExitScript.exit_curses(screen)
 		ExitScript.close_process(julius_output)
+		print('\nExiting the script.\n')
 		sys.exit(0)
 	
 	except Exception as general_error:
+		ExitScript.exit_curses(screen)
 		ExitScript.close_process(julius_output)
 		print(f"Unexpected {general_error=}, {type(general_error)=}\n")
-		print('An error occurred, exiting the script.')
+		print('\nAn error occurred, exiting the script.\n')
 		sys.exit(1)
