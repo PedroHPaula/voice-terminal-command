@@ -47,6 +47,7 @@ COPY                    k aa p iy
 CUT                     k ah t
 PASTE                   p ey s t
 SAVE                    s ey v
+SEARCH                  s er ch
 SELECT                  s ah l eh k t
 UNDO                    ah n d uw
 
@@ -119,6 +120,8 @@ LOCATE                  l ow k ey t
 % TERMINAL_KEYWORD
 TERMINAL                t er m ah n ah l
 
+% RELEASE_KEYWORD
+RELEASE                 r iy l iy s
 
 
 

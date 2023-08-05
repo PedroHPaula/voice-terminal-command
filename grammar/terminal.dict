@@ -26,6 +26,7 @@
 10	[CUT]	k ah t
 10	[PASTE]	p ey s t
 10	[SAVE]	s ey v
+10	[SEARCH]	s er ch
 10	[SELECT]	s ah l eh k t
 10	[UNDO]	ah n d uw
 11	[ZERO]	z iy r ow
@@ -77,3 +78,4 @@
 19	[ZIP]	z ih p
 19	[LOCATE]	l ow k ey t
 20	[TERMINAL]	t er m ah n ah l
+21	[RELEASE]	r iy l iy s
