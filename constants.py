@@ -29,6 +29,7 @@ ALPHANUM_KEYS = {
 	'TABULAR'    : Key.tab,
 	'TABULATE'   : Key.tab,
 	'CAPS'       : Key.caps_lock,
+	'LOCK'       : Key.caps_lock,
 	'CAPS LOCK'  : Key.caps_lock,
 	'SHIFT'      : Key.shift,
 	**ALPHABET_KEYS
@@ -56,6 +57,7 @@ CONTROL_KEY_ACTIONS = {
 	'CUT'    : 'x',
 	'PASTE'  : 'v',
 	'SAVE'   : 's',
+	'SEARCH' : 'f',
 	'SELECT' : 'a',
 	'UNDO'   : 'z',
 }

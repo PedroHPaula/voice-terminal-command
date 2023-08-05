@@ -35,7 +35,6 @@
 import shlex
 import subprocess
 import sys
-from time import sleep
 from pynput.keyboard import Key, Controller
 from constants import ARROW_KEYS, ALPHABET_KEYS, ALPHANUM_KEYS, \
 					  CONTROL_KEYS, CONTROL_KEY_ACTIONS, DIGITS_STRINGS, \
@@ -86,7 +85,7 @@ class ExitScript:
 				print(f"Unexpected {exit_error=}, {type(exit_error)=}\n")
 				print('\nAn error occurred when trying to exit curses mode...')
 		else:
-			print('\nCurses mode has been exited.')
+			print('\nCurses mode has been finished.')
 
 # Class for general commands that are not associated with the Terminal
 class General:
@@ -105,8 +104,9 @@ class General:
 
 
 	hold_actions = {
-        'CONTROL' : Key.ctrl,
-        'SHIFT'   : Key.shift,
+		'CONTROL'         : [Key.ctrl],
+		'SHIFT'           : [Key.shift],
+		'CONTROL SHIFT'   : [Key.ctrl, Key.shift],
     }
 
 	press_actions = {
@@ -249,19 +249,42 @@ class CommandAndControl:
 								substr = sentence.replace('CONTROL ','')
 								ctrl_action = self.general.parse_general_commands(substr,'ctrl_actions')
 								if ctrl_action:
-									with self.keyboard.pressed(Key.ctrl):
-											self.keyboard.press(ctrl_action)
-											self.keyboard.release(ctrl_action)
+									if self.keyboard.ctrl_pressed:
+										self.keyboard.tap(ctrl_action)
+									else:
+										with self.keyboard.pressed(Key.ctrl):
+											self.keyboard.tap(ctrl_action)
 
-							# Hold valid actions
-							elif sentence.startswith('HOLD') and win_id != script_id:
+							# Hold/Release valid actions
+							elif sentence.startswith(('HOLD','RELEASE')):
 								
-								substr = sentence.replace('HOLD ','')
-								hold_action = self.general.parse_general_commands(substr,'hold_actions')
-								if hold_action:
-									self.keyboard.press(hold_action)
-									sleep(5.0)
-									self.keyboard.release(hold_action)
+								if sentence.startswith('HOLD'):
+									substr = sentence.replace('HOLD ','')
+									hold_action = self.general.parse_general_commands(substr,'hold_actions')
+									if hold_action:
+										for i in range(len(hold_action)):
+											self.keyboard.press(hold_action[i])
+										if substr == 'CONTROL':
+											screen.control_flag = 1
+										elif substr == 'SHIFT':
+											screen.shift_flag = 1
+										elif substr == 'CONTROL SHIFT':
+											screen.control_flag = 1
+											screen.shift_flag = 1
+
+								elif sentence.startswith('RELEASE'):
+									substr = sentence.replace('RELEASE ','')
+									release_action = self.general.parse_general_commands(substr,'hold_actions')
+									if release_action:
+										for i in range(len(release_action)):
+											self.keyboard.release(release_action[i])
+										if substr == 'CONTROL':
+											screen.control_flag = 0
+										elif substr == 'SHIFT':
+											screen.shift_flag = 0
+										elif substr == 'CONTROL SHIFT':
+											screen.control_flag = 0
+											screen.shift_flag = 0
 
 							# Press valid actions
 							elif sentence.startswith('PRESS') and win_id != script_id:
@@ -288,9 +311,11 @@ class CommandAndControl:
 								substr = sentence.replace('SHIFT ','')
 								shift_action = self.general.parse_general_commands(substr,'shift_actions')
 								if shift_action:
-									with self.keyboard.pressed(Key.shift):
-										self.keyboard.press(shift_action)
-										self.keyboard.release(shift_action)
+									if self.keyboard.shift_pressed:
+										self.keyboard.tap(shift_action)
+									else:
+										with self.keyboard.pressed(Key.shift):
+											self.keyboard.tap(shift_action)
 
 							elif sentence.startswith('SUPER') or sentence.startswith('WINDOWS'):
 								
