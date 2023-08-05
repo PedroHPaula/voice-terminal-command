@@ -57,14 +57,14 @@
 	                #goes over the level threshold (-lv) will be counted.
                  	#(default: 60)
 
--headmargin 500		# head silence margin (msec)
+-headmargin 600		# head silence margin (msec)
 -tailmargin 700		# tail silence margin (msec)
 #-chunk_size 1000		# processing segment unit length in samples
 
--rejectshort 1500	# reject shorter input (msec)
+-rejectshort 1200	# reject shorter input (msec)
 #-rejectlong 900	# reject longer input (msec) -1 to disable
 
--b 4000
+-b 10000
 -b2 1000                # beam width on 2nd pass (#words)
 -sb 1000.0		# score beam envelope threshold
 -s 2500			# Stack size, i.e. the maximum number of hypothesis that can be stored on the stack during the search. A larger value may 
